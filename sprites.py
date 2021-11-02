@@ -8,10 +8,14 @@ BASETILEHEIGHT = 16
 class Spritesheet(object):
     def __init__(self):
         self.sheet = pygame.image.load("beautify/spritesheet.png").convert()
+        self.block = pygame.image.load("beautify/block0.png").convert()
         transcolor = self.sheet.get_at((0,0))
         self.sheet.set_colorkey(transcolor)
+        widthBlock = int(self.block.get_width() / BASETILEWIDTH * TILEWIDTH)
+        heightBlock = int(self.block.get_height() / BASETILEHEIGHT * TILEHEIGHT)
         width = int(self.sheet.get_width() / BASETILEWIDTH * TILEWIDTH)
         height = int(self.sheet.get_height() / BASETILEHEIGHT * TILEHEIGHT)
+        self.block = pygame.transform.scale(self.block, (widthBlock, heightBlock))
         self.sheet = pygame.transform.scale(self.sheet, (width, height))
         
     def getImage(self, x, y, width, height):
@@ -19,6 +23,12 @@ class Spritesheet(object):
         y *= TILEHEIGHT
         self.sheet.set_clip(pygame.Rect(x, y, width, height))
         return self.sheet.subsurface(self.sheet.get_clip())
+
+    def getImageBlock(self, x, y, widthBlock, heightBlock):
+        x *= TILEWIDTH
+        y *= TILEHEIGHT
+        self.block.set_clip(pygame.Rect(x, y, widthBlock, heightBlock))
+        return self.block.subsurface(self.block.get_clip())
 
 class LifeSprites(Spritesheet):
     def __init__(self, numlives):
@@ -75,13 +85,16 @@ class FruitSprites(Spritesheet):
         return Spritesheet.getImage(self, x, y, 2*TILEWIDTH, 2*TILEHEIGHT)
 
 class MazeSprites(Spritesheet):
-    def __init__(self, mazefile,rotfile):
+    def __init__(self, mazefile,spritefile):
         Spritesheet.__init__(self)
         self.data = self.readMazeFile(mazefile)
-        self.rotdata = self.readMazeFile(rotfile)
+        #self.rotdata = self.readMazeFile(rotfile)
 
     def getImage(self, x, y):
         return Spritesheet.getImage(self, x, y, TILEWIDTH, TILEHEIGHT)
+
+    def getImageBlock(self, x, y):
+        return Spritesheet.getImageBlock(self, x, y, TILEWIDTH, TILEHEIGHT)
 
     def readMazeFile(self, mazefile):
         return np.loadtxt(mazefile, dtype='<U1')
@@ -90,11 +103,11 @@ class MazeSprites(Spritesheet):
         for row in list(range(self.data.shape[0])):
             for col in list(range(self.data.shape[1])):
                 if self.data[row][col].isdigit():
-                    x = int(self.data[row][col]) + 12
-                    sprite = self.getImage(x, y)
-                    rotval = int(self.rotdata[row][col])
-                    sprite = self.rotate(sprite, rotval)
+                    sprite = self.getImageBlock(0, 0)
+                    #rotval = int(self.rotdata[row][col])
+                    # sprite = self.rotate(sprite, rotval)
                     background.blit(sprite, (col*TILEWIDTH, row*TILEHEIGHT))
+                    #center doors
                 elif self.data[row][col] == '=':
                     sprite = self.getImage(10, 8)
                     background.blit(sprite, (col*TILEWIDTH, row*TILEHEIGHT))
@@ -102,5 +115,5 @@ class MazeSprites(Spritesheet):
         return background
     
     #0 - 0, 1 - 90, 2 - 180, 3 - 270(rotation.txt)
-    def rotate(self, sprite, value):
-       return pygame.transform.rotate(sprite, value*90)
+    # def rotate(self, sprite, value):
+    #    return pygame.transform.rotate(sprite, value*90)

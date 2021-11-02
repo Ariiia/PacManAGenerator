@@ -50,10 +50,11 @@ class GameController(object):
     
     def startGame(self):
         self.setBackground()
-        self.mazesprites = MazeSprites("maze.txt", "rotation.txt")
+        #MAZE SETTING
+        self.mazesprites = MazeSprites("maze.txt", "beautify/block0.PNG")
         self.background = self.mazesprites.constructBackground(self.background, self.level%5)
         self.nodes = NodeGroup("maze.txt")
-        self.nodes.setPortalPair((0,17), (27,17))
+        # self.nodes.setPortalPair((0,17), (27,17))
         homekey = self.nodes.createHomeNodes(11.5, 14) #central home for ghosts
         self.nodes.connectHomeNodes(homekey, (12,14), LEFT)
         self.nodes.connectHomeNodes(homekey, (15,14), RIGHT)

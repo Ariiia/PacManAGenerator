@@ -157,11 +157,12 @@ class SearchControl(object):
     
     def startGame(self):
         self.setBackground()
-        self.mazesprites = MazeSprites("maze.txt", "rotation.txt")
-        self.background = self.mazesprites.constructBackground(self.background, 2)
+        #MAZE SETTING
+        self.mazesprites = MazeSprites("maze.txt", "beautify/block0.PNG")
+        self.background = self.mazesprites.constructBackground(self.background, 0)
         self.nodes = NodeGroup("maze.txt")
         self.fruit = Fruit(self.nodes.getNodeFromTiles(26, 4))
-        self.nodes.setPortalPair((0,17), (27,17))
+        # self.nodes.setPortalPair((0,17), (27,17))
         self.pacman = Pacman(self.nodes.getNodeFromTiles(1, 32))#we start here
         self.pellets = PelletGroup("maze.txt")
 
