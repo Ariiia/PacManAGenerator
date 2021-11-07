@@ -33,9 +33,12 @@ class NodeGroup(object):
     def __init__(self, level):
         self.level = level
         self.nodesLUT = {}
-        self.nodeSymbols = ['+', 'P', 'n']
-        self.pathSymbols = ['.', '-', '|', 'p']
-        data = self.readMazeFile(level)
+        #change symbols
+        self.nodeSymbols = ['p']
+        self.pathSymbols = ['p']
+
+        #data = self.readMazeFile(level)
+        data = self.level #maze
         self.createNodeTable(data)
         self.connectHorizontally(data)
         self.connectVertically(data)
@@ -91,6 +94,8 @@ class NodeGroup(object):
                     #print(str(x/16)+"- x,"+str(y/16)+"- y")
                     self.nodesLUT[(x, y)] = Node(x, y)
                     
+                   
+                    
 
     def constructKey(self, x, y):
         return x * TILEWIDTH, y * TILEHEIGHT
@@ -142,23 +147,23 @@ class NodeGroup(object):
         return nodes[0]      
 
     #hardcode home for ghosts
-    def createHomeNodes(self, xoffset, yoffset):
-        homedata = np.array([['X','X','+','X','X'],
-                             ['X','X','.','X','X'],
-                             ['+','X','.','X','+'],
-                             ['+','.','+','.','+'],
-                             ['+','X','X','X','+']])
+    # def createHomeNodes(self, xoffset, yoffset):
+    #     homedata = np.array([['X','X','+','X','X'],
+    #                          ['X','X','.','X','X'],
+    #                          ['+','X','.','X','+'],
+    #                          ['+','.','+','.','+'],
+    #                          ['+','X','X','X','+']])
 
-        self.createNodeTable(homedata, xoffset, yoffset)
-        self.connectHorizontally(homedata, xoffset, yoffset)
-        self.connectVertically(homedata, xoffset, yoffset)
-        self.homekey = self.constructKey(xoffset+2, yoffset)
-        return self.homekey
+    #     self.createNodeTable(homedata, xoffset, yoffset)
+    #     self.connectHorizontally(homedata, xoffset, yoffset)
+    #     self.connectVertically(homedata, xoffset, yoffset)
+    #     self.homekey = self.constructKey(xoffset+2, yoffset)
+    #     return self.homekey
 
-    def connectHomeNodes(self, homekey, otherkey, direction):     
-        key = self.constructKey(*otherkey)
-        self.nodesLUT[homekey].neighbors[direction] = self.nodesLUT[key]
-        self.nodesLUT[key].neighbors[direction*-1] = self.nodesLUT[homekey]
+    # def connectHomeNodes(self, homekey, otherkey, direction):     
+    #     key = self.constructKey(*otherkey)
+    #     self.nodesLUT[homekey].neighbors[direction] = self.nodesLUT[key]
+    #     self.nodesLUT[key].neighbors[direction*-1] = self.nodesLUT[homekey]
 
     def render(self, screen):
         for node in self.nodesLUT.values():

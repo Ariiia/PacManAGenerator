@@ -10,15 +10,17 @@ import pprint
 from timeit import default_timer as timer
 from pellets import Pellet, PelletGroup
 from queue import PriorityQueue
+from mapgen import Maze
 
 
 class SearchControl(object):
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode(SCREENSIZE, 0, 32)
-        self.background = None
+        #self.background = None
         self.clock = pygame.time.Clock() 
         self.fruit = None
+        
         
 
 
@@ -124,7 +126,7 @@ class SearchControl(object):
 
     def update(self):
         dt = self.clock.tick(30) / 1000.0 
-        self.pacman.update(dt)
+        #self.pacman.update(dt)
         if self.fruit is not None:
             #self.fruit.update(dt)
             self.checkFruitEvents()
@@ -145,11 +147,11 @@ class SearchControl(object):
     def checkFruitEvents(self):  
         if self.fruit is None:
             self.fruit = Fruit(self.nodes.getNodeFromTiles(26, 4))
-        if self.fruit is not None:
-            if self.pacman.collideCheck(self.fruit):
-                self.fruit = None
-            elif self.fruit.destroy:
-                self.fruit = None
+        # if self.fruit is not None:
+        #     if self.pacman.collideCheck(self.fruit):
+        #         self.fruit = None
+        #     elif self.fruit.destroy:
+        #         self.fruit = None
     
     def setBackground(self):
             self.background = pygame.surface.Surface(SCREENSIZE).convert()
@@ -158,29 +160,64 @@ class SearchControl(object):
     def startGame(self):
         self.setBackground()
         #MAZE SETTING
-        self.mazesprites = MazeSprites("maze.txt", "beautify/block0.PNG")
+        self.maze = Maze()
+        self.maze.array=self.maze.array.decode("utf-8")
+        #self.mazesprites = MazeSprites("maze.txt", "beautify/block0.PNG")
+        self.mazesprites = MazeSprites(self.maze.array, "beautify/block0.PNG")
         self.background = self.mazesprites.constructBackground(self.background, 0)
-        self.nodes = NodeGroup("maze.txt")
+
+        #self.nodes = NodeGroup("maze.txt")
+        self.nodes = NodeGroup(self.maze.array)
+
+        with np.printoptions(threshold=np.inf):
+            print(self.maze.array)
+        
         self.fruit = Fruit(self.nodes.getNodeFromTiles(26, 4))
         # self.nodes.setPortalPair((0,17), (27,17))
-        self.pacman = Pacman(self.nodes.getNodeFromTiles(1, 32))#we start here
-        self.pellets = PelletGroup("maze.txt")
+        #self.pacman = Pacman(self.nodes.getNodeFromTiles(1, 32))#we start here
+
+        #self.pellets = PelletGroup("maze.txt")
 
     def render(self):
         self.screen.blit(self.background, (0, 0))
         #for skeleton purpose
-        self.nodes.render(self.screen)
-        self.pellets.render(self.screen) 
+        #self.nodes.render(self.screen)
+
+        #self.pellets.render(self.screen) 
+
         if self.fruit is not None:
             self.fruit.render(self.screen)
-        self.pacman.render(self.screen)
+        # self.pacman.render(self.screen)
         pygame.display.update()
 
+    
+    #add A* things like heuristics, tile paint,etcetera, greedy algoritm
+    #we have open list
+    #closed list
+    #put the first tile in open list
+    # foreach tile in open list
+    #add current tile to closed list
+    #add all neighbours to open list
+    #way through 4 nodes
+    #1. double manhattan(g+h)
+    #2. greedy(only nodes left to goal(manhattan))
+    #3. sub-optimal (g+h())
+    def AStar():
+        pass
+
+
+
+
+
+
+    
 pygame.display.set_caption('Lady Pacman')    
 if __name__ == "__main__":
     game = SearchControl()
-    game.startGame()
-    game.search()
+    game.startGame()      #пофиксить старгейм
+                        #пофиксить
+
+    #game.search()
     while True:
         game.update()
 

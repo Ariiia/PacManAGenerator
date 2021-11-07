@@ -87,8 +87,8 @@ class FruitSprites(Spritesheet):
 class MazeSprites(Spritesheet):
     def __init__(self, mazefile,spritefile):
         Spritesheet.__init__(self)
-        self.data = self.readMazeFile(mazefile)
-        #self.rotdata = self.readMazeFile(rotfile)
+        #self.data = self.readMazeFile(mazefile)
+        self.data = mazefile
 
     def getImage(self, x, y):
         return Spritesheet.getImage(self, x, y, TILEWIDTH, TILEHEIGHT)
@@ -102,15 +102,17 @@ class MazeSprites(Spritesheet):
     def constructBackground(self, background, y):
         for row in list(range(self.data.shape[0])):
             for col in list(range(self.data.shape[1])):
-                if self.data[row][col].isdigit():
+                if self.data[row][col]=='W':
+                    #print(0)
                     sprite = self.getImageBlock(0, 0)
                     #rotval = int(self.rotdata[row][col])
                     # sprite = self.rotate(sprite, rotval)
                     background.blit(sprite, (col*TILEWIDTH, row*TILEHEIGHT))
                     #center doors
-                elif self.data[row][col] == '=':
-                    sprite = self.getImage(10, 8)
-                    background.blit(sprite, (col*TILEWIDTH, row*TILEHEIGHT))
+
+                # elif self.data[row][col] == '=':
+                #     sprite = self.getImage(10, 8)
+                #     background.blit(sprite, (col*TILEWIDTH, row*TILEHEIGHT))
 
         return background
     

@@ -46,16 +46,17 @@ class PelletGroup(object):
             powerpellet.update(dt)
                 
     #REMOVED DOTS     
+    #change pellet spawns
     def createPelletList(self, pelletfile):
         data = self.readPelletfile(pelletfile)        
         for row in range(data.shape[0]):
             for col in range(data.shape[1]):
-                if data[row][col] in ['.', '+']:
+                if data[row][col] in ['p']:
                     self.pelletList.append(Pellet(row, col))
-                elif data[row][col] in ['P', 'p']:
-                    pp = PowerPellet(row, col)
-                    self.pelletList.append(pp)
-                    self.powerpellets.append(pp)
+                # elif data[row][col] in ['P', 'p']:
+                #     pp = PowerPellet(row, col)
+                #     self.pelletList.append(pp)
+                #     self.powerpellets.append(pp)
                     
     def readPelletfile(self, textfile):
         return np.loadtxt(textfile, dtype='<U1')

@@ -7,11 +7,10 @@ from constants import *
 
 import random
 import time
-from colorama import init
-from colorama import Fore, Back, Style
 
 
-init()
+
+
 
 class Maze(object):
     def __init__(self):
@@ -42,11 +41,11 @@ class Maze(object):
         for i in range(0, self.height):
             for j in range(0, self.width):
                 if (self.maze[i][j] == 'u'):
-                    print(Fore.WHITE + str(self.maze[i][j]), end=" ")
+                    print(str(self.maze[i][j]), end=" ")
                 elif (self.maze[i][j] == 'p'):
-                    print(Fore.GREEN + str(self.maze[i][j]), end=" ")
+                    print(str(self.maze[i][j]), end=" ")
                 else:
-                    print(Fore.RED + str(self.maze[i][j]), end=" ")
+                    print(str(self.maze[i][j]), end=" ")
                 
             print('\n')
 
@@ -304,4 +303,4 @@ class Maze(object):
 if __name__ == "__main__":
     GenMaze = Maze()
     GenMaze.prin()
-    GenMaze.array.type
+    #GenMaze.array.type
