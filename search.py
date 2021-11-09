@@ -13,6 +13,7 @@ from queue import PriorityQueue
 from mapgen import Maze
 
 
+
 class SearchControl(object):
     def __init__(self):
         pygame.init()
@@ -26,23 +27,23 @@ class SearchControl(object):
 
     
 
-    def search(self):
-        startX, startY = 1, 32
-        endX, endY = 26, 4
-        startNode = self.nodes.nodesLUT[(startX * 16, startY * 16)]
-        endNode = self.nodes.nodesLUT[(endX * 16, endY * 16)]
-        startUFC = timer()
-        self.ufc(startNode, endNode)
+    def search(self, startNode, endNode):
+        
+        #startUFC = timer()
+        ucsPath, ucsExpanded = self.ufc(startNode, endNode)
+        lengt = len(ucsPath)
+        print("ufc path"+str(lengt))
+        print("ufc count of visited nodes"+str(ucsExpanded))
         endUFC = timer()
-        print(str(endUFC - startUFC)+" -- ufc")
+        #print(str(endUFC - startUFC)+" -- ufc")
         startDFS = timer()
-        self.dfs(startNode, endNode)
+        #self.dfs(startNode, endNode)
         endDFS = timer()
-        print(str(endDFS - startDFS)+" -- dfs")
+        #print(str(endDFS - startDFS)+" -- dfs")
         startBFS = timer()
-        self.bfs(startNode, endNode)
+        #self.bfs(startNode, endNode)
         endBFS = timer()
-        print(str(endBFS - startBFS)+" -- bfs")
+        #print(str(endBFS - startBFS)+" -- bfs")
        
         
 
@@ -92,6 +93,7 @@ class SearchControl(object):
         ident = 0
         pqueue = PriorityQueue()
         pqueue.put((0, (ident, startNode, [startNode])))  #cost, node, path
+        countExp = 0
         while pqueue:
 
             cost, bunch  = pqueue.get() 
@@ -99,11 +101,12 @@ class SearchControl(object):
             current = bunch[1] 
             path = bunch[2]
             if current not in visited: 
+                countExp += 1
                 visited.append(current)
             if current == endNode:
-                for x in path:
-                    print(x.position.__str16__())
-                return path
+                # for x in path:
+                #     print(x.position.__str16__())
+                return path, countExp
             else:
                 for neighbour in self.nodes.nodesLUT[current.position.asTuple()].neighbors:
                     
@@ -113,25 +116,27 @@ class SearchControl(object):
                         newCost = 0
                         for x in self.pellets.pelletList:
                             if x.position == self.nodes.nodesLUT[current.position.asTuple()].neighbors[neighbour].position:
+                                #print(self.nodes.nodesLUT[current.position.asTuple()].position.asTuple())
                                 objectName = x.name
+                            else:
+                                objectName = ""
                         if objectName == PELLET:
-                            newCost = 50
+                            newCost = 30
                         elif objectName == POWERPELLET:
-                            newCost = -100
+                            newCost = 0
                         else:
                             newCost = 100
+                        
                         pqueue.put((cost + newCost, (ident, self.nodes.nodesLUT[current.position.asTuple()].neighbors[neighbour], path + [self.nodes.nodesLUT[current.position.asTuple()].neighbors[neighbour]])))
                     
     
 
-    def update(self):
+    def update(self, startX,startY, endX, endY, allCoins):
         dt = self.clock.tick(30) / 1000.0 
         #self.pacman.update(dt)
-        if self.fruit is not None:
-            #self.fruit.update(dt)
-            self.checkFruitEvents()
+        
         self.checkEvents()
-        self.render()
+        self.render(startX,startY, endX, endY, allCoins)
 
     def checkEvents(self):
         for event in pygame.event.get():
@@ -171,19 +176,22 @@ class SearchControl(object):
 
         with np.printoptions(threshold=np.inf):
             print(self.maze.array)
-        
-        self.fruit = Fruit(self.nodes.getNodeFromTiles(26, 4))
-        # self.nodes.setPortalPair((0,17), (27,17))
+        #self.fruit = Fruit(self.nodes.getNodeFromTiles(26, 4))
         #self.pacman = Pacman(self.nodes.getNodeFromTiles(1, 32))#we start here
-
         #self.pellets = PelletGroup("maze.txt")
+        self.pellets = PelletGroup(self.maze.array)
 
-    def render(self):
+    def render(self, startX,startY, endX, endY, allCoins):
         self.screen.blit(self.background, (0, 0))
         #for skeleton purpose
         #self.nodes.render(self.screen)
+        pygame.draw.rect(self.screen, WHITE, pygame.Rect(startX*TILEWIDTH,startY*TILEHEIGHT,TILEWIDTH,TILEHEIGHT))
+        pygame.draw.rect(self.screen, RED, pygame.Rect(endX*TILEWIDTH,endY*TILEHEIGHT,TILEWIDTH,TILEHEIGHT))
+        for each in allCoins:
+            x, y = each
+            pygame.draw.rect(self.screen, YELLOW, pygame.Rect(x,y,TILEWIDTH,TILEHEIGHT))
 
-        #self.pellets.render(self.screen) 
+        self.pellets.render(self.screen) 
 
         if self.fruit is not None:
             self.fruit.render(self.screen)
@@ -202,11 +210,241 @@ class SearchControl(object):
     #1. double manhattan(g+h)
     #2. greedy(only nodes left to goal(manhattan))
     #3. sub-optimal (g+h())
-    def AStar():
-        pass
+    def AStarManhattan(self, startNode, endNode, D):
+
+        
+        ident = 0
+        ccost = 0 #current cost
+        open = PriorityQueue()
+        closed = []
+        dist = D * self.Manhattan(self.nodes.nodesLUT[endNode.position.asTuple()].position.asInt(), self.nodes.nodesLUT[startNode.position.asTuple()].position.asInt())
+        #print(dist)
+        #totalcost = manhattan + cost so far
+        f = dist + 0
+        open.put((f, (ident, ccost, startNode, [startNode])))  #totalcost, cost, node, path
+        countExpanded = 0
+        while open:
+
+            f, bunch  = open.get() 
+
+            ccost = bunch[1]
+            current = bunch[2] 
+            path = bunch[3]
+            if current not in closed: 
+                countExpanded +=1
+                closed.append(current)
+            if current == endNode:
+                # for x in path:
+                #print(x.position.__str16__())
+                return path, countExpanded
+            else:
+                for neighbour in self.nodes.nodesLUT[current.position.asTuple()].neighbors:
+                    
+                    if self.nodes.nodesLUT[current.position.asTuple()].neighbors[neighbour] not in closed and self.nodes.nodesLUT[current.position.asTuple()].neighbors[neighbour]:
+                        #check for cost
+                        ident+=1
+                        newCost = 0 
+                        for x in self.pellets.pelletList:
+                            if x.position == self.nodes.nodesLUT[current.position.asTuple()].neighbors[neighbour].position:
+                                #print(self.nodes.nodesLUT[current.position.asTuple()].position.asTuple())
+                                objectName = x.name
+                            else:
+                                objectName = ""
+                        if objectName == PELLET:
+                            newCost = 30
+                        elif objectName == POWERPELLET:
+                            newCost = 0
+                        else:
+                            newCost = 100
+
+                        g = newCost + ccost
+                        dist =D * self.Manhattan(self.nodes.nodesLUT[endNode.position.asTuple()].position.asInt(), self.nodes.nodesLUT[current.position.asTuple()].neighbors[neighbour].position.asInt())
+                        f = g + dist
+                        open.put((f, (ident, g, self.nodes.nodesLUT[current.position.asTuple()].neighbors[neighbour], path + [self.nodes.nodesLUT[current.position.asTuple()].neighbors[neighbour]])))
+        
+
+
+    def AStarGreedy(self, startNode, endNode,D):
+
+        ident = 0
+        #ccost = 0 #current cost
+        open = PriorityQueue()
+        closed = []
+        dist = D * self.Manhattan(self.nodes.nodesLUT[endNode.position.asTuple()].position.asInt(), self.nodes.nodesLUT[startNode.position.asTuple()].position.asInt())
+        #print(dist)
+        #totalcost = manhattan + cost so far
+        f = dist + 0 #always zero
+        open.put((f, (ident,  startNode, [startNode])))  #totalcost, cost, node, path
+        countExpanded = 0
+        while open:
+            f, bunch  = open.get() 
+            current = bunch[1] 
+            path = bunch[2]
+            if current not in closed: 
+                countExpanded +=1
+                closed.append(current)
+            if current == endNode:
+                # for x in path:
+                #     print(x.position.__str16__())
+                return path, countExpanded
+                
+            else:
+                for neighbour in self.nodes.nodesLUT[current.position.asTuple()].neighbors:
+                    
+                    if self.nodes.nodesLUT[current.position.asTuple()].neighbors[neighbour] not in closed and self.nodes.nodesLUT[current.position.asTuple()].neighbors[neighbour]:
+                        #check for cost
+                        ident+=1
+                        dist = D * self.Manhattan(self.nodes.nodesLUT[endNode.position.asTuple()].position.asInt(), self.nodes.nodesLUT[current.position.asTuple()].neighbors[neighbour].position.asInt())
+                        f = 0 + dist
+                        open.put((f, (ident, self.nodes.nodesLUT[current.position.asTuple()].neighbors[neighbour], path + [self.nodes.nodesLUT[current.position.asTuple()].neighbors[neighbour]])))
+        
+
+
+    def AStarOptimistic(self, startNode, endNode,D):
+
+        
+        ident = 0
+        ccost = 0 #current cost
+        open = PriorityQueue()
+        closed = []
+        dist = (2*D - 1) * self.Manhattan(self.nodes.nodesLUT[endNode.position.asTuple()].position.asInt(), self.nodes.nodesLUT[startNode.position.asTuple()].position.asInt())
+        #print(dist)
+        #totalcost = manhattan + cost so far
+        f = dist + 0
+        #f = g + (2*D-1)
+        open.put((f, (ident, ccost, startNode, [startNode])))  #totalcost, cost, node, path
+        countExpanded = 0
+        while open:
+
+            f, bunch  = open.get() 
+
+            ccost = bunch[1]
+            current = bunch[2] 
+            path = bunch[3]
+            if current not in closed: 
+                countExpanded +=1
+                closed.append(current)
+            if current == endNode:
+                # for x in path:
+                #print(x.position.__str16__())
+                return path, countExpanded
+            else:
+                for neighbour in self.nodes.nodesLUT[current.position.asTuple()].neighbors:
+                    
+                    if self.nodes.nodesLUT[current.position.asTuple()].neighbors[neighbour] not in closed and self.nodes.nodesLUT[current.position.asTuple()].neighbors[neighbour]:
+                        #check for cost
+                        ident+=1
+                        newCost = 0 
+                        for x in self.pellets.pelletList:
+                            if x.position == self.nodes.nodesLUT[current.position.asTuple()].neighbors[neighbour].position:
+                                #print(self.nodes.nodesLUT[current.position.asTuple()].position.asTuple())
+                                objectName = x.name
+                            else:
+                                objectName = ""
+                        if objectName == PELLET:
+                            newCost = 30
+                        elif objectName == POWERPELLET:
+                            newCost = 0
+                        else:
+                            newCost = 100
+
+                        g = newCost + ccost
+                        dist = (2*D - 1) * self.Manhattan(self.nodes.nodesLUT[endNode.position.asTuple()].position.asInt(), self.nodes.nodesLUT[current.position.asTuple()].neighbors[neighbour].position.asInt())
+                        f = g + dist
+                        open.put((f, (ident, g, self.nodes.nodesLUT[current.position.asTuple()].neighbors[neighbour], path + [self.nodes.nodesLUT[current.position.asTuple()].neighbors[neighbour]])))
+
+
+    def Manhattan(self, end, current):
+        #D - weight, approx.  difference between two adj nodes
+        #counted according to spawn probs:
+        #pellet - 60%(cost 30), powerpellet - 5%(cost 0), nothing - 35%(cost 100)
+        #http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html
+        
+
+        endX, endY = end
+        currentX, currentY = current
+        dist = abs(endX/16 - currentX/16) + abs(endY/16 - currentY/16)
+        return dist
+        
+
+    def AllBigCoins(self,D):
+
+        #get list of pp
+        #self.pellets.pelletList
+        #self.name = PELLET
+        #self.position = Vector2(column*TILEWIDTH, row*TILEHEIGHT)
+        coinsList = []
+        for inst in self.pellets.pelletList:
+            if inst.name == POWERPELLET:
+                coinsList.append(inst.position.asInt())
+        #print(coinsList)
+        # current = coinsList.pop(0)
+        # print(current)
+        # x = current[0]
+        # y = current[1]
+
+        #add first pp location as startnode to look from there
+        source = [coinsList[0]]
+        print(source)
+        coinsList.remove(coinsList[0])
+        print(coinsList)
+
+        while(coinsList):
+            queueToGo = PriorityQueue()
+            ident = 0
+
+            #find greedy-best nodes to connect
+            for start in source:
+                for end in coinsList:
+                    # print(start)
+                    # print(end)
+                    dist = D * self.Manhattan(end, start)
+                    ident += 1
+                    queueToGo.put((dist, (ident, start, end)))
+
+            #get start - end node
+            d, bunch =queueToGo.get()
+            nodeStart = bunch[1]
+            nodeEnd = bunch[2]
+            # print(nodeStart)
+            startNode = game.nodes.nodesLUT[nodeStart]
+            endNode = game.nodes.nodesLUT[nodeEnd]
+            # GO GREEDY
+            curPath, visitedNodes = self.AStarGreedy(startNode, endNode, D)
+            print(len(curPath))
+
+            for element in curPath:
+                source.append(element.position.asInt())
+
+            
+
+            #
+            #
+            
+            for each in source:
+                if each in coinsList:
+                    print("+")
+                    coinsList.remove(each)
+
+        print("source", source, len(source))
+        return source
+
+        
+        
+        
+
+
+        
 
 
 
+
+
+        
+
+        
+        
+        
 
 
 
@@ -214,12 +452,50 @@ class SearchControl(object):
 pygame.display.set_caption('Lady Pacman')    
 if __name__ == "__main__":
     game = SearchControl()
+    startX, startY = 26, 4
+    endX, endY = 1, 32
     game.startGame()      #пофиксить старгейм
                         #пофиксить
 
-    #game.search()
+    startNode = game.nodes.nodesLUT[(startX * 16, startY * 16)]
+    endNode = game.nodes.nodesLUT[(endX * 16, endY * 16)]
+    D = 53
+    #define start nodes
+    # run astar
+    
+
+
+    #A* manhattan
+    AStarPath, AStarCountExp = game.AStarManhattan(startNode, endNode, D)
+    lenMan = len(AStarPath)
+    print("AStar path"+str(lenMan))
+    print("AStar count of visited nodes"+str(AStarCountExp))
+
+    #A* Greedy
+    AStarGreedyPath, AStarGreedyExp = game.AStarGreedy(startNode, endNode, D)
+    lenGreedy = len(AStarGreedyPath)
+    print("Greedy path"+str(lenGreedy))
+    print("Greedy count of visited nodes"+str(AStarGreedyExp))
+
+    #A* Optimistic(suboptimal)
+    subOptPath, NumberVisited = game.AStarOptimistic(startNode, endNode, D)
+    lensubOptPath = len(subOptPath)
+    print("Optimistic path"+str(lensubOptPath))
+    print("Optimistic count of visited nodes"+str(NumberVisited))
+
+    allCoins = game.AllBigCoins(D)
+    print(len(allCoins))
+    
+    
+
+
+    
+
+
+
     while True:
-        game.update()
+        game.update(startX,startY, endX, endY, allCoins)
+        
 
     
 

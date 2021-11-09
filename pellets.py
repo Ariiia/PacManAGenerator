@@ -2,17 +2,18 @@ import pygame
 from vector import Vector2
 from constants import *
 import numpy as np
+import random, time
 
 class Pellet(object):
     def __init__(self, row, column):
         self.name = PELLET
         self.position = Vector2(column*TILEWIDTH, row*TILEHEIGHT)
-        self.color = WHITE
+        self.color = TEAL
         self.radius = int(2 * TILEWIDTH / 16)
         self.collideRadius = int(2 * TILEWIDTH / 16)
         self.points = 10
         self.visible = True
-        
+
     def render(self, screen):
         if self.visible:
             adjust = Vector2(TILEWIDTH, TILEHEIGHT) /4
@@ -23,7 +24,7 @@ class PowerPellet(Pellet):
     def __init__(self, row, column):
         Pellet.__init__(self, row, column)
         self.name = POWERPELLET
-        self.radius = int(8 * TILEWIDTH / 16)
+        self.radius = int(6 * TILEWIDTH / 16)
         self.points = 50
         self.flashTime = 0.2
         self.timer= 0
@@ -48,11 +49,16 @@ class PelletGroup(object):
     #REMOVED DOTS     
     #change pellet spawns
     def createPelletList(self, pelletfile):
-        data = self.readPelletfile(pelletfile)        
+        #data = self.readPelletfile(pelletfile)        
+        data = pelletfile
         for row in range(data.shape[0]):
             for col in range(data.shape[1]):
-                if data[row][col] in ['p']:
+                pelletYes = random.random()
+                if data[row][col] in ['p'] and pelletYes > 0.4:
                     self.pelletList.append(Pellet(row, col))
+                elif data[row][col] in ['p'] and pelletYes < 0.05:
+                    pp = PowerPellet(row, col)
+                    self.pelletList.append(pp)
                 # elif data[row][col] in ['P', 'p']:
                 #     pp = PowerPellet(row, col)
                 #     self.pelletList.append(pp)

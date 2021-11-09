@@ -276,7 +276,7 @@ class Maze(object):
                 break
 
         # Print final maze
-        self.printMaze()
+        # self.printMaze()
 
 
     def gatherMaze(self): 
@@ -302,5 +302,5 @@ class Maze(object):
 
 if __name__ == "__main__":
     GenMaze = Maze()
-    GenMaze.prin()
+    #GenMaze.prin()
     #GenMaze.array.type

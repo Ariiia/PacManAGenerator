@@ -87,12 +87,16 @@ class NodeGroup(object):
         return np.loadtxt(textfile, dtype='<U1')
 
     def createNodeTable(self, data, xoffset=0, yoffset=0):
+
+        count = 0
         for row in list(range(data.shape[0])):
             for col in list(range(data.shape[1])):
                 if data[row][col] in self.nodeSymbols or data[row][col] in self.pathSymbols:
+                    count+=1
                     x, y = self.constructKey(col+xoffset, row+yoffset)
                     #print(str(x/16)+"- x,"+str(y/16)+"- y")
                     self.nodesLUT[(x, y)] = Node(x, y)
+        print(count)
                     
                    
                     
